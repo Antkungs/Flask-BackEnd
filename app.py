@@ -22,7 +22,7 @@ def  connect():
     
 @app.route('/', methods=['GET'])
 def index():
-    return "hello"
+    return "sfoapjphvhuiuiuiujd"
 
 @app.route('/voice_analysis', methods=['GET'])
 def voice_analysis():
@@ -76,6 +76,41 @@ def voice_analysis():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/voice_analysis/<id>', methods=['GET'])
+def get_voice_analysis(id):
+    try:
+        # เชื่อมต่อฐานข้อมูล
+        conn = connect()  # Use the function to connect to the database
+        if conn is None:
+            return jsonify({"error": "Failed to connect to the database"}), 500
+        
+        cursor = conn.cursor()
+
+        # Query to fetch the record by ID
+        cursor.execute("SELECT * FROM voice_analysis WHERE id = %s", (id,))
+        db_result = cursor.fetchone()  # fetchone() for a single record
+
+        if db_result is None:
+            return jsonify({"error": "Record not found"}), 404
+
+        # Prepare response data
+        analysis_data = {
+            'id': db_result[0],  # ID (Primary key)
+            'timestamp': db_result[1],  # Timestamp ของการทำนาย
+            'predicted_gender': db_result[2],  # เพศที่ทำนาย
+            'confidence_score': db_result[3],  # คะแนนความมั่นใจ
+        }
+
+        # Close the connection
+        cursor.close()
+        conn.close()
+
+        # Return the fetched record
+        return jsonify({'analysis_data': analysis_data})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 def insert_message(text, received_at):
     try:
         conn = connect()
